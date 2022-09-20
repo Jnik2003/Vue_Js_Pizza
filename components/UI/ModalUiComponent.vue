@@ -40,8 +40,10 @@
     margin: auto;
     background-color: white;
     border-radius: 10px;
-    min-height: 50px;
+    min-height: 500px;
     min-width: 300px;
-    padding: 20px;
+    max-width: 1080px;
+    padding: 20px 50px;
+    display: flex;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="pizza">
-    <img :src="pizza.img" :alt="pizza.name" />
+    <img :src="pizza.img" :alt="pizza.name" class="pizza-img"/>
     <h3>{{ pizza.name }}</h3>
     <p>{{ pizza.maindescription }}</p>
     <div class="pizza__footer">
@@ -16,19 +16,42 @@
   >
     <div class="pizza-modal">
       <div class="pizza-modal__main">
-        <img :src="pizza.img" :alt="pizza.name" />
+        <img :src="pizza.img" :alt="pizza.name" class="pizza-img__modal"/>
       </div>
       <div class="pizza-modal__additional">
         <h3>{{ pizza.name }}</h3>
+        <div class="pizza-modal__description">
+          <p>{{getDiam}}</p>
+        </div>
         <p>{{ pizza.description }}</p>
         <div class="sizes">
-          <div v-for="(size, ind) in pizza.size" :key="ind">
-            <label> <input type="radio" name="size" v-model="pizzaSize" :value="size.name" :checked="size.checked"/>{{ size.name }}</label>
-          </div>
+          <label class="sizes__label">
+            <input class="sizes__input" type="radio" name="size" value="small" v-model="LabelSizePizza" @click="getSize('small')"/>{{ pizza.size.small.name }}
+          </label>
+          <label class="sizes__label active">
+            <input class="sizes__input" type="radio" name="size" value="middle"  v-model="LabelSizePizza" @click="getSize('middle')" />{{ pizza.size.middle.name }}
+          </label>
+          <label class="sizes__label">
+            <input class="sizes__input" type="radio" name="size" value="big"  v-model="LabelSizePizza" @click="getSize('big')"/>{{ pizza.size.big.name }}
+          </label>
         </div>
+
+        <div class="paste">
+          <label class="paste__label active">
+            <input type="radio" name="paste" />{{
+              pizza.paste.traditional.name
+            }}</label
+          >
+          <label class="paste__label">
+            <input type="radio" name="paste" />{{
+              pizza.paste.thin.name
+            }}</label
+          >
+        </div>
+
         <div class="pizza__footer">
           <div class="total-price">
-            <h3>{{price}} Р</h3>
+            <h3>{{getPrice}} Р</h3>
           </div>
           <button class="btn-select">В корзину</button>
         </div>
@@ -39,14 +62,18 @@
 
 <script>
 import ModalUiComponent from "./UI/ModalUiComponent.vue";
+
 export default {
   name: "PizzaComponent",
   data() {
     return {
-      // isModalVisible: false,
-      isModalVisible: true,
-      pizzaSize: 'Средняя',
-      totalPrice: 0,
+      order: [{}],
+      isModalVisible: false,
+      // isModalVisible: true,
+      LabelSizePizza: 'middle',
+      LabelName: '',
+      PizzaDiameter: '',
+      PizzaPrice: 0,
     };
   },
   props: {
@@ -56,29 +83,51 @@ export default {
   },
   components: { ModalUiComponent },
   methods: {
+    closeModal() {
+      this.isModalVisible = false;
+    },
     selectPizza() {
       this.isModalVisible = true;
       console.log("this.isModalVisible");
     },
-    closeModal() {
-      this.isModalVisible = false;
-    },
-  },
-  computed:{
-    
-    price(){
-      if(this.pizzaSize == this.pizza.size.small.name){
-        this.totalPrice = this.pizza.size.small.price
-      }
-      else if(this.pizzaSize == this.pizza.size.middle.name){
-        this.totalPrice = this.pizza.size.middle.price
-      }
-      else{
-        this.totalPrice = this.pizza.size.big.price
-      }
-
-      return this.totalPrice
+    getSize(value){
+      const inputs = document.querySelectorAll('.sizes__input')
+      console.log(value)
+      inputs.forEach(item => {
+        item.parentNode.classList.remove('active')
+      })
+      document.querySelector(`[value=${value}]`).parentNode.classList.add('active')
+     
+      const image = document.querySelector('.pizza-img__modal')
+      console.log(image)
+      // if(value == 'small'){
+      //   image.classList.add('small')
+      // }
+      value == 'small' ? image.classList.add('small') : image.classList.remove('small')
+      value == 'middle' ? image.classList.add('middle') : image.classList.remove('middle')
+      value == 'big' ? image.classList.add('big') : image.classList.remove('big')
+      
+      this.LabelSizePizza = value
+      this.LabelName = this.pizza.size[this.LabelSizePizza].name
+      
     }
+    
+  },
+  computed: {
+   getDiam(){
+    return this.PizzaDiameter = this.pizza.size[this.LabelSizePizza].diameter
+   },
+   getPrice(){
+    return this.PizzaPrice = this.pizza.size[this.LabelSizePizza].price
+   },  
+   
+  },
+  mounted(){  
+    console.log('mount')
+     this.PizzaPrice = this.pizza.size[this.LabelSizePizza].price
+     this.PizzaDiameter = this.pizza.size[this.LabelSizePizza].diameter
+     this.LabelName = this.pizza.size[this.LabelSizePizza].name
+   
   }
 };
 </script>
@@ -115,6 +164,9 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
+    img {
+      width: 80%;
+    }
   }
   .pizza-modal__additional {
     display: flex;
@@ -122,8 +174,51 @@ export default {
     flex-direction: column;
     justify-content: space-around;
   }
-  .sizes{
+  .sizes,
+  .paste {
     display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    background-color: #9b9a9a;
+    border-radius: 9999px;
+    border: 1px solid #ccc;
+  }
+
+  .small {
+    width: 60% !important;
+  }
+  .middle {
+    width: 80% !important;
+  }
+  .big {
+    width: 100% !important;
+  }
+  .disabled {
+    color: #ccc;
+    background-color: #faf8f8 !important;
+  }
+  input[type="radio"] {
+    display: none;
+  }
+  label:has(input[value="Средняя"]) {
+    background-color: white;
+  }
+  .sizes__label,
+  .paste__label {
+    padding: 5px 10px;
+    border-radius: 9999px;
+    // background-color: #ccc;
+    display: block;
+    width: 150px;
+    display: flex;
+    justify-content: center;
+    transition: 0.5s;
+  }
+  .paste__label {
+    width: 250px;
+  }
+  .active {
+    background-color: white;
   }
 }
 </style>
